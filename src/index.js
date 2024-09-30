@@ -1,18 +1,23 @@
-const fastify = require('fastify')({logger: true});     //Calling the fastify container
+const fastify = require('fastify')({logger: false});     //Calling the fastify container
 const app = require('./app');
+const connectToDB = require('./config/db.config');
+const serverConfig = require('./config/serverConfig');
 
 fastify.register(app);
 
 fastify.get('/ping', (req, res) => {
     res.send({message: 'pong'});
-})
+});
 
-PORT = 3000;
+const PORT = serverConfig.PORT;
 
-fastify.listen({port: PORT}, (err) => {
+fastify.listen({port: PORT}, async (err) => {
     if(err) {
         fastify.log.error(err);
         process.exit(1);
     }
+
+    await connectToDB();
+
     console.log(`Server up at port: ${PORT}`);
-})
+});

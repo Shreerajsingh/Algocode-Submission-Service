@@ -1,5 +1,7 @@
+const { createSubmission } = require("../../../controllers/submissionController");
+
 async function v1Route(fastify, options) {
-    fastify.register(require('./test/testRoute'), {prefix: '/test'});
+    fastify.post('/ping', createSubmission);
 }
 
 module.exports = v1Route;
