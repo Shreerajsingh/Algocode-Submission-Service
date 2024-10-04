@@ -1,24 +1,50 @@
+const fetchProblemDetails = require("../apis/problemApi");
 const SubmissionProducer = require("../producers/submissionQueueProducer");
 
 class SubmissionService {
-    constructor(submissionRespository) {
+    constructor(submissionRepository) {
         //inject
-        this.submissionRespository = submissionRespository;
+        this.submissionRepository = submissionRepository;
     }
 
     async pingCheck() {
         return "pong";
     }
 
-    async addSubmission(submission) {
-        const submission_ = await this.submissionRespository.createSubmission(submission);
-        if(!submission_) {
+    async addSubmission(submissionPayload) {
+        const problemId = submissionPayload.problemId;
+        const problemAdminApiResponse = await fetchProblemDetails(problemId);
+
+        if(!problemAdminApiResponse) {
             // Pending task: 'Add Error Handler';
-            return {message: "Not able to create submission"}
+            return {message: "Not able to create the submission"}
         }
-        const response = await SubmissionProducer(submission);
+
+        const languageCodeStub = problemAdminApiResponse.data.codeStubs.find(codestub => (codestub.language.toLowerCase() === submissionPayload.language.toLowerCase()));
+
+        console.log(languageCodeStub);
+
+        submissionPayload.code = languageCodeStub.startSnippet + "\n\n" + submissionPayload.code + "\n\n" + languageCodeStub.endSnippet;
+
+        const submission = await this.submissionRepository.createSubmission(submissionPayload);
+        console.log(">>", submission);
+        if(!submission) {
+            // Pending task: 'Add Error Handler';
+            return {message: "Not able to create the submission"}
+        }
+
+        const response = await SubmissionProducer({
+            [submission._id]: {
+                code: submission.code,
+                language: submission.language,
+                inputTestCase: problemAdminApiResponse.data.testCases[0].input,
+                outputTestCase: problemAdminApiResponse.data.testCases[0].output
+            }
+        });
+
         console.log(response);
-        return {queueResponse: response, submission_};
+
+        return {queueResponse: response, submission};
     }
 }
 

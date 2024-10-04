@@ -7,7 +7,7 @@ async function pingRequest(req, res) {
 // TODO: Add validation layer
 async function createSubmission(req, res) {
     const response = await this.submissionService.addSubmission(req.body);
-    console.log(response);
+    
     return res.status(201).send({
         success: true,
         message: "",
