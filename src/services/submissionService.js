@@ -27,7 +27,7 @@ class SubmissionService {
         submissionPayload.code = languageCodeStub.startSnippet + "\n\n" + submissionPayload.code + "\n\n" + languageCodeStub.endSnippet;
 
         const submission = await this.submissionRepository.createSubmission(submissionPayload);
-        console.log(">>", submission);
+        
         if(!submission) {
             // Pending task: 'Add Error Handler';
             return {message: "Not able to create the submission"}
